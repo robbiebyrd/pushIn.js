@@ -6,10 +6,14 @@ $(document).ready(function () {
     var scrollPos = window.pageYOffset,
         viewHeight = $(window).height(),
         pageHeight = $('body').height(),
-        scrollValue = scrollPos / (pageHeight - viewHeight);
+        scrollValue = scrollPos / (pageHeight - viewHeight),
+        startTouchY = 0,
+        touchScroll = scrollPos;
+    
+    $('.dot:nth-child(2) .content h4').html(Math.round(scrollValue * 100) / 100);
 
     // On scroll...
-    $(window).scroll(function () {
+    /*$(window).scroll(function () {
 
         // Scroll position is updated
         scrollPos = window.pageYOffset;
@@ -17,8 +21,53 @@ $(document).ready(function () {
         // Convert scroll position to a percentage of overall page size
         scrollValue = scrollPos / (pageHeight - viewHeight);
 
-    });
+    });*/
     
+    // For touch-screens, use event listeners for touch events
+    
+    $('body').bind({
+        
+        touchstart: function () {
+            
+            // Don't use the default browser actions for touches
+            event.preventDefault();
+            
+            // Detect all touches
+            var t = event.touches;
+            
+            //Get the initial location of the first touch on screen
+            startTouchY = t[0].pageY;
+            
+            $('.dot:nth-child(2) .content h4').html(t.length);
+        },
+        touchmove: function () {
+            
+            // Don't use the default browser actions for touches
+            event.preventDefault();
+            
+            var t = event.touches,
+                currentTouchY = t[0].pageY;
+            
+            // Scroll position is updated, only if it's over value of 0
+            if (scrollPos < 0) {
+                scrollPos = 0;
+            } else {
+                scrollPos += (startTouchY - currentTouchY) * 0.01;
+            }
+
+            // Convert scroll position to a percentage of overall page size
+            scrollValue = scrollPos / (pageHeight - viewHeight);
+            
+            $('.dot:nth-child(3) .content h4').html(Math.round(scrollValue * 100) / 100);
+            
+        },
+        touchend: function () {
+            if (scrollPos < 0) {
+                scrollPos = 0;
+            }
+        }
+        
+    });
     
     // Begin JQuery plugin
     (function ($) {
@@ -43,7 +92,9 @@ $(document).ready(function () {
                     );
                 
                 // Prevent negative scaleValue before start point
-                scaleValue < 0 ? scaleValue = 0 : scaleValue;
+                if (scaleValue < 0) {
+                    scaleValue = 0;
+                }
                 
                 // For each item within JQuery object...
                 this.each(function () {
